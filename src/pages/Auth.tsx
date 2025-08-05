@@ -91,11 +91,11 @@ const Auth = () => {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src={`${lineAlertLogo}?v=${Date.now()}`}
+              src="https://i.imgur.com/HIcyOYx.png"
               alt="LineAlert Logo" 
               className="h-16 w-auto"
-              onLoad={() => console.log('Auth logo loaded successfully:', lineAlertLogo)}
-              onError={(e) => console.error('Auth logo failed to load:', e, 'Source:', lineAlertLogo)}
+              onLoad={() => console.log('Auth logo loaded successfully')}
+              onError={(e) => console.error('Auth logo failed to load:', e)}
             />
           </div>
           <CardTitle className="text-2xl font-bold">Login for State and Federal Agencies</CardTitle>
