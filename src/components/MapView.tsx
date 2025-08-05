@@ -348,19 +348,19 @@ export default function MapView({
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg">
-        <h4 className="text-sm font-semibold mb-2">Priority</h4>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-sm"></div>
+      <div className="absolute bottom-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm border rounded-lg p-2 shadow-lg">
+        <h4 className="text-xs font-semibold mb-1">Priority</h4>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></div>
             <span className="text-xs">High</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-amber-500 border-2 border-white shadow-sm"></div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-amber-500 border border-white shadow-sm"></div>
             <span className="text-xs">Medium</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm"></div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm"></div>
             <span className="text-xs">Low</span>
           </div>
         </div>
