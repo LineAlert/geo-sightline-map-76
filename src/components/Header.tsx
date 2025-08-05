@@ -28,9 +28,11 @@ const Header = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <img 
-            src={lineAlertLogo}
+            src={`${lineAlertLogo}?v=${Date.now()}`}
             alt="LineAlert Logo"
             className="h-12 w-auto"
+            onLoad={() => console.log('Header logo loaded successfully:', lineAlertLogo)}
+            onError={(e) => console.error('Header logo failed to load:', e, 'Source:', lineAlertLogo)}
           />
           <div className="text-foreground">
             <h1 className="text-xl font-semibold">State Control Panel</h1>
