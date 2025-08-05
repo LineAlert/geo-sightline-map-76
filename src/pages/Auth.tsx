@@ -201,7 +201,7 @@ const Auth = () => {
                     <SelectContent>
                       {US_LOCATIONS.map((loc) => (
                         <SelectItem key={loc} value={loc}>
-                          {loc}
+                          {loc === 'United States' ? 'Federal Agency' : loc}
                         </SelectItem>
                       ))}
                     </SelectContent>
