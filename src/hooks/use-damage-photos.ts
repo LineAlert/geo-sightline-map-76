@@ -93,8 +93,11 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
         // Apply priority overrides to photos
         const priorityMap = new Map(priorityOverrides?.map(p => [p.photo_id, p.priority]) || []);
         transformedPhotos.forEach(photo => {
-          if (priorityMap.has(photo.id)) {
-            photo.priority = priorityMap.get(photo.id) as 'high' | 'medium' | 'low';
+          // Check both string and number versions of photo ID to handle type mismatches
+          const priorityValue = priorityMap.get(photo.id) || priorityMap.get(String(photo.id));
+          if (priorityValue && (priorityValue === 'high' || priorityValue === 'medium' || priorityValue === 'low')) {
+            photo.priority = priorityValue;
+            console.log('Applied priority override for photo:', photo.id, 'priority:', photo.priority);
           }
         });
       }
@@ -195,7 +198,7 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
       const { error } = await supabase
         .from('photo_priorities')
         .upsert({
-          photo_id: photoId,
+          photo_id: String(photoId), // Ensure photo_id is stored as string
           user_id: user.id,
           priority
         }, {
