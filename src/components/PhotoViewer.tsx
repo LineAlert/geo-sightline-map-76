@@ -13,7 +13,6 @@ import {
   User, 
   Compass, 
   Mountain, 
-  Download,
   ExternalLink,
   X,
   AlertTriangle
@@ -76,14 +75,6 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange }: PhotoViewerPr
     return `${directions[index]} (${degrees}°)`;
   };
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = photo.imageUrl;
-    link.download = `damage-photo-${photo.id}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const openInMaps = () => {
     const url = `https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`;
@@ -161,11 +152,7 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange }: PhotoViewerPr
               </div>
               
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleDownload} className="flex-1">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-                <Button variant="outline" onClick={openInMaps} className="flex-1">
+                <Button variant="outline" onClick={openInMaps} className="w-full">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open in Maps
                 </Button>
