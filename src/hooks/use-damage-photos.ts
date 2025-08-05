@@ -1,0 +1,208 @@
+import { useState, useEffect } from 'react';
+import { DamagePhoto, PhotoFilters, SelectedArea } from '@/types/damage-photo';
+import { supabase } from '@/integrations/supabase/client';
+
+export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
+  const [photos, setPhotos] = useState<DamagePhoto[]>([]);
+  const [filteredPhotos, setFilteredPhotos] = useState<DamagePhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<PhotoFilters>({});
+  const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
+
+  // Load photos from S3 bucket and merge with database priorities
+  const loadPhotos = async () => {
+    try {
+      setLoading(true);
+      
+      console.log('Fetching data from S3 via edge function...');
+      
+      // Call the edge function to fetch S3 data
+      const { data, error } = await supabase.functions.invoke('fetch-s3-data');
+
+      if (error) {
+        console.error('Error calling edge function:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No data received from S3');
+      }
+
+      console.log('Raw S3 data received:', data);
+      
+      // Handle different possible data structures
+      let features;
+      if (data.type === 'FeatureCollection' && data.features) {
+        features = data.features;
+      } else if (Array.isArray(data)) {
+        features = data;
+      } else {
+        throw new Error('Unexpected data format from S3');
+      }
+      
+      // Transform the data to match our DamagePhoto interface
+      const transformedPhotos: DamagePhoto[] = features.map((item: any, index: number) => {
+        // Handle GeoJSON feature format
+        let properties = item.properties || item;
+        let coordinates = item.geometry?.coordinates || [item.longitude || item.lng || 0, item.latitude || item.lat || 0];
+        
+        // Extract coordinates (GeoJSON uses [longitude, latitude, altitude])
+        const longitude = parseFloat(coordinates[0]) || 0;
+        const latitude = parseFloat(coordinates[1]) || 0;
+        const altitude = coordinates[2] ? parseFloat(coordinates[2]) : undefined;
+        
+        // Handle various possible field names from different data sources
+        const getId = () => properties.id || properties.ID || properties.uuid || properties.signature || `photo-${index}`;
+        const getImageUrl = () => properties.preview || properties.thumbnail || properties.imageUrl || properties.image_url || properties.url || '';
+        const getTimestamp = () => properties.instant || properties.timestamp || properties.created_at || properties.date || properties.created || new Date().toISOString();
+        const getDescription = () => properties.caption || properties.description || properties.title || properties.name || '';
+        const getUser = () => properties.name || properties.username || properties.user || properties.author || '';
+        const getPriority = () => {
+          const priority = properties.priority?.toLowerCase();
+          if (priority === 'high' || priority === 'critical') return 'high';
+          if (priority === 'medium' || priority === 'moderate') return 'medium';
+          if (priority === 'low' || priority === 'minor') return 'low';
+          return undefined; // no default priority
+        };
+
+        return {
+          id: getId(),
+          imageUrl: getImageUrl(),
+          latitude,
+          longitude,
+          timestamp: getTimestamp(),
+          description: getDescription(),
+          user: getUser(),
+          priority: getPriority(),
+          direction: properties.direction || properties.heading,
+          altitude,
+          tags: properties.tags || []
+        };
+      });
+
+      // Fetch user-specific priority overrides from database
+      const { data: priorityOverrides, error: priorityError } = await supabase
+        .from('photo_priorities')
+        .select('photo_id, priority');
+
+      if (priorityError) {
+        console.error('Error fetching priority overrides:', priorityError);
+        // Continue without overrides if database query fails
+      } else {
+        // Apply priority overrides to photos
+        const priorityMap = new Map(priorityOverrides?.map(p => [p.photo_id, p.priority]) || []);
+        transformedPhotos.forEach(photo => {
+          if (priorityMap.has(photo.id)) {
+            photo.priority = priorityMap.get(photo.id) as 'high' | 'medium' | 'low';
+          }
+        });
+      }
+
+      setPhotos(transformedPhotos);
+      setFilteredPhotos(transformedPhotos);
+      console.log('Transformed photos with priority overrides:', transformedPhotos);
+    } catch (error) {
+      console.error('Error loading photos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter photos based on current filters, selected area, and viewport bounds
+  const applyFilters = () => {
+    let filtered = [...photos];
+
+    // Apply viewport filter if available (when zooming/panning)
+    const boundsToUse = viewportBounds || selectedArea;
+    if (boundsToUse && boundsToUse.bounds) {
+      filtered = filtered.filter(photo => 
+        photo.latitude >= boundsToUse.bounds!.south &&
+        photo.latitude <= boundsToUse.bounds!.north &&
+        photo.longitude >= boundsToUse.bounds!.west &&
+        photo.longitude <= boundsToUse.bounds!.east
+      );
+    }
+
+    // Apply date filter
+    if (filters.startDate || filters.endDate) {
+      filtered = filtered.filter(photo => {
+        const photoDate = new Date(photo.timestamp);
+        if (filters.startDate && photoDate < filters.startDate) return false;
+        if (filters.endDate && photoDate > filters.endDate) return false;
+        return true;
+      });
+    }
+
+    // Apply user filter
+    if (filters.user) {
+      filtered = filtered.filter(photo => photo.user === filters.user);
+    }
+
+    // Apply priority filter
+    if (filters.priority) {
+      filtered = filtered.filter(photo => photo.priority === filters.priority);
+    }
+
+    setFilteredPhotos(filtered);
+  };
+
+  useEffect(() => {
+    loadPhotos();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [photos, filters, selectedArea, viewportBounds]);
+
+  const updateFilters = (newFilters: Partial<PhotoFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    setSelectedArea(null);
+  };
+
+  const updatePhotosPriority = async (photoId: string, priority: 'high' | 'medium' | 'low') => {
+    try {
+      // Update local state immediately for responsive UI
+      setPhotos(prev => prev.map(photo => 
+        photo.id === photoId ? { ...photo, priority } : photo
+      ));
+
+      // Save to database (upsert - insert or update if exists)
+      const { error } = await supabase
+        .from('photo_priorities')
+        .upsert({
+          photo_id: photoId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          priority
+        }, {
+          onConflict: 'photo_id,user_id'
+        });
+
+      if (error) {
+        console.error('Error saving priority to database:', error);
+        // Revert local state if database save fails
+        setPhotos(prev => prev.map(photo => 
+          photo.id === photoId ? { ...photo, priority: photo.priority } : photo
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating photo priority:', error);
+    }
+  };
+
+  return {
+    photos: filteredPhotos,
+    allPhotos: photos,
+    loading,
+    filters,
+    selectedArea,
+    updateFilters,
+    clearFilters,
+    setSelectedArea,
+    updatePhotosPriority,
+    reload: loadPhotos
+  };
+};
