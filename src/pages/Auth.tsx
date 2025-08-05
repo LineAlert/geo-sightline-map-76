@@ -94,6 +94,8 @@ const Auth = () => {
               src={lineAlertLogo}
               alt="LineAlert Logo" 
               className="h-16 w-auto"
+              onLoad={() => console.log('Logo loaded successfully:', lineAlertLogo)}
+              onError={(e) => console.error('Logo failed to load:', e, 'Source:', lineAlertLogo)}
             />
           </div>
           <CardTitle className="text-2xl font-bold">Login for State and Federal Agencies</CardTitle>
