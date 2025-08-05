@@ -15,6 +15,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
+interface StateCoordinates {
+  lat: number;
+  lng: number;
+  zoom: number;
+}
+
 interface MapViewProps {
   photos: DamagePhoto[];
   allPhotos: DamagePhoto[];
@@ -23,6 +29,7 @@ interface MapViewProps {
   onAreaSelect: (area: SelectedArea | null) => void;
   selectedArea?: SelectedArea | null;
   onViewportChange?: (bounds: SelectedArea) => void;
+  initialLocation?: StateCoordinates;
 }
 
 export default function MapView({
@@ -33,6 +40,7 @@ export default function MapView({
   onAreaSelect,
   selectedArea,
   onViewportChange,
+  initialLocation,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -51,8 +59,12 @@ export default function MapView({
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Create map
-    map.current = L.map(mapContainer.current).setView([40.7128, -74.0060], 10);
+    // Create map with initial location if provided
+    const defaultLat = initialLocation?.lat || 40.7128;
+    const defaultLng = initialLocation?.lng || -74.0060;
+    const defaultZoom = initialLocation?.zoom || 10;
+    
+    map.current = L.map(mapContainer.current).setView([defaultLat, defaultLng], defaultZoom);
 
     // Add OpenStreetMap tiles with better error handling
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -122,7 +134,7 @@ export default function MapView({
         map.current = null;
       }
     };
-  }, []); // Remove onViewportChange dependency to prevent infinite loop
+  }, [initialLocation]); // Add initialLocation dependency
 
   // Handle draw events separately
   useEffect(() => {

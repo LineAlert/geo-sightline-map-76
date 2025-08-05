@@ -6,14 +6,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import lineAlertLogo from '@/assets/linealert-logo.png';
+
+const US_LOCATIONS = [
+  'United States',
+  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 
+  'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 
+  'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 
+  'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 
+  'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 
+  'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 
+  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+];
 
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -24,14 +37,20 @@ const Auth = () => {
     setLoading(true);
     setError('');
 
+    if (!location) {
+      setError('Please select your agency location.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          data: {
+            location: location
+          }
         }
       });
 
@@ -43,9 +62,12 @@ const Auth = () => {
         }
       } else {
         toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link to complete your signup.",
+          title: "Account created successfully!",
+          description: "You can now sign in to access the damage assessment system.",
         });
+        // Auto-switch to sign in tab
+        const signInTab = document.querySelector('[data-value="signin"]') as HTMLElement;
+        signInTab?.click();
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -169,6 +191,21 @@ const Auth = () => {
                     required
                     minLength={6}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="agency-location">Agency Location</Label>
+                  <Select value={location} onValueChange={setLocation} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your agency's location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_LOCATIONS.map((loc) => (
+                        <SelectItem key={loc} value={loc}>
+                          {loc}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {error && (
                   <Alert variant="destructive">

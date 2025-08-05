@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDamagePhotos } from '@/hooks/use-damage-photos';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { DamagePhoto, SelectedArea } from '@/types/damage-photo';
 import Header from '@/components/Header';
 import FilterPanel from '@/components/FilterPanel';
@@ -13,6 +14,7 @@ import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
+  const { getUserLocationCoordinates } = useProfile();
   const navigate = useNavigate();
   
   const [selectedPhoto, setSelectedPhoto] = useState<DamagePhoto | null>(null);
@@ -139,6 +141,7 @@ const Index = () => {
                   onAreaSelect={setSelectedArea}
                   selectedArea={selectedArea}
                   onViewportChange={debouncedHandleViewportChange}
+                  initialLocation={getUserLocationCoordinates()}
                 />
               </div>
             </ResizablePanel>
