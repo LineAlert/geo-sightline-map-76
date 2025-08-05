@@ -90,17 +90,28 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange }: PhotoViewerPr
     window.open(url, '_blank');
   };
 
-  const handlePriorityChange = (newPriority: string) => {
+  const handlePriorityChange = async (newPriority: string) => {
     const priority = newPriority as 'high' | 'medium' | 'low';
+    const previousPriority = currentPriority;
     setCurrentPriority(priority);
+    
     if (onPriorityChange && photo) {
-      onPriorityChange(photo.id, priority);
+      try {
+        await onPriorityChange(photo.id, priority);
+        toast({
+          title: "Priority Updated",
+          description: `Photo priority set to ${priority}`,
+        });
+      } catch (error) {
+        // Revert the UI state if save failed
+        setCurrentPriority(previousPriority);
+        toast({
+          title: "Error",
+          description: "Failed to save priority. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
-    toast({
-      title: "Priority Updated",
-      description: `Priority changed to ${newPriority}`,
-      variant: "default",
-    });
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DamagePhoto, PhotoFilters, SelectedArea } from '@/types/damage-photo';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
   const [photos, setPhotos] = useState<DamagePhoto[]>([]);
@@ -165,31 +166,55 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
 
   const updatePhotosPriority = async (photoId: string, priority: 'high' | 'medium' | 'low') => {
     try {
+      console.log('Updating priority for photo:', photoId, 'to:', priority);
+      
+      // Store original priority for potential rollback
+      const originalPhoto = photos.find(photo => photo.id === photoId);
+      const originalPriority = originalPhoto?.priority;
+      
       // Update local state immediately for responsive UI
       setPhotos(prev => prev.map(photo => 
         photo.id === photoId ? { ...photo, priority } : photo
       ));
 
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('User not authenticated:', userError);
+        // Revert to original state
+        setPhotos(prev => prev.map(photo => 
+          photo.id === photoId ? { ...photo, priority: originalPriority } : photo
+        ));
+        throw new Error('User not authenticated');
+      }
+
+      console.log('Saving priority to database for user:', user.id);
+      
       // Save to database (upsert - insert or update if exists)
       const { error } = await supabase
         .from('photo_priorities')
         .upsert({
           photo_id: photoId,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           priority
         }, {
           onConflict: 'photo_id,user_id'
         });
 
       if (error) {
-        console.error('Error saving priority to database:', error);
-        // Revert local state if database save fails
+        console.error('Database error saving priority:', error);
+        // Revert to original state
         setPhotos(prev => prev.map(photo => 
-          photo.id === photoId ? { ...photo, priority: photo.priority } : photo
+          photo.id === photoId ? { ...photo, priority: originalPriority } : photo
         ));
+        throw error;
       }
+      
+      console.log('Priority saved successfully to database');
     } catch (error) {
       console.error('Error updating photo priority:', error);
+      throw error; // Re-throw to allow calling component to handle
     }
   };
 
