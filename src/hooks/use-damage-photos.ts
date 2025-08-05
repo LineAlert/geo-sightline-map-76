@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { DamagePhoto, PhotoFilters, SelectedArea } from '@/types/damage-photo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useProfile } from './useProfile';
 
 export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
   const [photos, setPhotos] = useState<DamagePhoto[]>([]);
@@ -9,6 +10,7 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<PhotoFilters>({});
   const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
+  const { isLocationInUserState, profile } = useProfile();
 
   // Load photos from S3 bucket and merge with database priorities
   const loadPhotos = async () => {
@@ -112,9 +114,17 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
     }
   };
 
-  // Filter photos based on current filters, selected area, and viewport bounds
+  // Filter photos based on current filters, selected area, viewport bounds, and user's state
   const applyFilters = () => {
     let filtered = [...photos];
+
+    // Apply state-based geographical filtering first
+    if (profile && profile.location !== 'United States') {
+      filtered = filtered.filter(photo => 
+        isLocationInUserState(photo.latitude, photo.longitude)
+      );
+      console.log(`Filtered to ${filtered.length} photos within ${profile.location}`);
+    }
 
     // Apply viewport filter if available (when zooming/panning)
     const boundsToUse = viewportBounds || selectedArea;
@@ -156,7 +166,7 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
 
   useEffect(() => {
     applyFilters();
-  }, [photos, filters, selectedArea, viewportBounds]);
+  }, [photos, filters, selectedArea, viewportBounds, profile]);
 
   const updateFilters = (newFilters: Partial<PhotoFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
