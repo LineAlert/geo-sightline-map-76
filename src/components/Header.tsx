@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Filter, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import agencyLogo from '@/assets/agency-logo.png';
+import lineAlertLogo from '@/assets/linealert-logo.png';
 
 interface HeaderProps {
   onClearFilters: () => void;
@@ -28,7 +28,7 @@ const Header = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <img 
-            src={agencyLogo}
+            src={lineAlertLogo}
             alt="LineAlert Logo"
             className="h-12 w-auto"
           />

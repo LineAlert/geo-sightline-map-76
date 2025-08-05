@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import lineAlertLogo from '@/assets/linealert-logo.png';
 
 
 const Auth = () => {
@@ -90,9 +91,9 @@ const Auth = () => {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="https://lh3.googleusercontent.com/pw/AP1GczO0Y11QZGDAP3QFJ8BqXkEv425jsX9Jfr2jiDPH4p-okKN_-0d8BuzWPu06U4hEjwlbsyG8a19KWeZNqogIkzyVlyxmA-CLLTc33ViB4j4pNQI_o0AGQQG1lAgtJzp30C5R8W3-ZZbgZldXaurEIL34jVnd19-H8g654BoVdjpQiWfNVp_CEZ4mXjdktOV_a1ImTPEWTRB7vuuyQJp8crVwWT7SXNTRIMxtzSLLpMQXfL6sUDlSdbwZ_HKbboru0EsIf7Jd4CkwngEhzJZntRUgJ2uIZX8Xq2wvxNLJjUjBuwLeteXSfgsFlkULIbpxthi0NDWFbyBqsRHCB-Rzqj1Ps3CpB96Uu1KKBAXIUS8GohTXbfywl4FCOqlPrLoNlhYNUDrtF8lU4HIfLFyvEBoh1LFR-UZXH9dYQoUjr9CYM4O1qlWGDSDLcdMpeOY0MUjTEi9bQirV7funN-lYx-5eGazAi0KSmAU3fJnre0FSrR_sYXPEdtvhF8VE8_smLC2PmNT-2DlaqXuNTbdwF01IMBCGU8PI7_dYuJKM4GhuzQjLdWvUN8snE9m9feh3ZDQ9kew7LuyP9WUV34UoE9cOMjZvE96zI9zz8jwh7p9fbKH6Ewuz5e2tv8V3Ei7CDZHlMyBJ34-mkX_DQvswwbTMz_rIZJ5fRjX69jZCmFjh2fHSvCxcBqST30QDXgUR0t-jtLIR1Kl0FpwiG4v92tcW5My9jZomZ-w6tkBqA-dfvXyO09lY4IoHKHRja2jK1rdRPd_AAH6UNIpzpRdT5i6ff893tJ90GBvfDIIfQxwrO0jlY1Kbty7vESoaW285OicWgFxKFQYFnc0DlhKlggErDLauN9aC8alVhMQbl_1H_HmRFLKbmvz-Opbsvu6vTzJk=w1440-h509-s-no?authuser=0"
+              src={lineAlertLogo}
               alt="LineAlert Logo" 
-              className="h-12 w-auto"
+              className="h-16 w-auto"
             />
           </div>
           <CardTitle className="text-2xl font-bold">Login for State and Federal Agencies</CardTitle>
