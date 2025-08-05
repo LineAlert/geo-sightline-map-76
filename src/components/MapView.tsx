@@ -246,20 +246,26 @@ export default function MapView({
     });
   }, [photos, mapSelectedPhoto, onPhotoSelect]);
 
-  // Fit to all photos on initial load
+  // Fit to photos on initial load or when photos change
   useEffect(() => {
-    if (!map.current || !allPhotos.length) return;
+    if (!map.current) return;
     
-    // Only fit to photos once when allPhotos first loads
-    fitToPhotos();
-  }, [allPhotos.length > 0 && map.current]); // Trigger only when both map and photos are available
+    // Fit to photos when we have filtered photos (state-specific) or when we have allPhotos (federal)
+    const hasPhotosToShow = photos.length > 0 || allPhotos.length > 0;
+    if (hasPhotosToShow) {
+      fitToPhotos();
+    }
+  }, [photos.length, allPhotos.length, map.current]); // Trigger when photo counts change
 
   const fitToPhotos = () => {
-    if (!map.current || !allPhotos.length) return;
+    // Use filtered photos for state-specific users, all photos for federal agencies
+    const photosToFit = photos.length > 0 ? photos : allPhotos;
     
-    // Calculate bounds directly from ALL photo coordinates to ensure all photos are included
-    const latitudes = allPhotos.map(photo => photo.latitude);
-    const longitudes = allPhotos.map(photo => photo.longitude);
+    if (!map.current || !photosToFit.length) return;
+    
+    // Calculate bounds directly from the appropriate photo set
+    const latitudes = photosToFit.map(photo => photo.latitude);
+    const longitudes = photosToFit.map(photo => photo.longitude);
     
     const minLat = Math.min(...latitudes);
     const maxLat = Math.max(...latitudes);
@@ -273,6 +279,7 @@ export default function MapView({
     );
     
     map.current.fitBounds(bounds, { padding: [20, 20] });
+    console.log(`Map fitted to ${photosToFit.length} photos`);
   };
 
   const clearSelection = () => {
