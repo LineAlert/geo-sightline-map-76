@@ -103,7 +103,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header 
         onClearFilters={handleClearAll}
         onToggleFilters={() => setShowFilters(!showFilters)}
@@ -112,7 +112,7 @@ const Index = () => {
         filteredPhotos={photos.length}
       />
       
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         {/* Filter Panel */}
         {showFilters && (
           <div className="w-80 border-r border-border bg-surface">
