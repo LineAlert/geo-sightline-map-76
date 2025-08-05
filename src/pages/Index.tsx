@@ -147,12 +147,14 @@ const Index = () => {
             
             {/* Photo Grid Panel */}
             <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="h-full bg-surface-variant">
-                <PhotoGrid
-                  photos={photos}
-                  selectedPhoto={selectedPhoto}
-                  onPhotoSelect={handlePhotoSelect}
-                />
+              <div className="h-full flex flex-col bg-surface-variant">
+                <div className="flex-1 min-h-0">
+                  <PhotoGrid
+                    photos={photos}
+                    selectedPhoto={selectedPhoto}
+                    onPhotoSelect={handlePhotoSelect}
+                  />
+                </div>
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
