@@ -150,43 +150,6 @@ const FilterPanel = ({ filters, onFiltersChange, allUsers, className = "" }: Fil
           </div>
         </div>
 
-        {/* User Filter */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Inspector
-          </Label>
-          
-           <div className="flex gap-2">
-            <Select 
-              value={filters.user || "all"} 
-              onValueChange={(value) => onFiltersChange({ user: value === "all" ? undefined : value })}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="All inspectors" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All inspectors</SelectItem>
-                {allUsers.map(user => (
-                  <SelectItem key={user} value={user}>
-                    {user}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {filters.user && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="px-2"
-                onClick={() => clearFilter('user')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
 
         {/* Priority Filter */}
         <div className="space-y-2">
