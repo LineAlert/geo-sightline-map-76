@@ -164,10 +164,12 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
         const description = (photo.description || '').toLowerCase();
         const user = (photo.user || '').toLowerCase();
         const tags = (photo.tags || []).join(' ').toLowerCase();
+        const caption = (photo.caption || '').toLowerCase();
         
         return description.includes(searchTerm) || 
                user.includes(searchTerm) || 
-               tags.includes(searchTerm);
+               tags.includes(searchTerm) ||
+               caption.includes(searchTerm);
       });
     }
 
