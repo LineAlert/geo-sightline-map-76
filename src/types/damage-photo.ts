@@ -18,6 +18,7 @@ export interface PhotoFilters {
   user?: string;
   priority?: 'high' | 'medium' | 'low';
   tags?: string[];
+  search?: string;
 }
 
 export interface SelectedArea {

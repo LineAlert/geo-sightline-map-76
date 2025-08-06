@@ -157,6 +157,20 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
       filtered = filtered.filter(photo => photo.priority === filters.priority);
     }
 
+    // Apply search filter
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = filtered.filter(photo => {
+        const description = (photo.description || '').toLowerCase();
+        const user = (photo.user || '').toLowerCase();
+        const tags = (photo.tags || []).join(' ').toLowerCase();
+        
+        return description.includes(searchTerm) || 
+               user.includes(searchTerm) || 
+               tags.includes(searchTerm);
+      });
+    }
+
     setFilteredPhotos(filtered);
   };
 

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { PhotoFilters } from '@/types/damage-photo';
-import { Calendar, User, AlertTriangle, X } from 'lucide-react';
+import { Calendar, User, AlertTriangle, X, Search } from 'lucide-react';
 
 interface FilterPanelProps {
   filters: PhotoFilters;
@@ -74,6 +74,34 @@ const FilterPanel = ({ filters, onFiltersChange, allUsers, className = "" }: Fil
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Search Bar */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Search
+          </Label>
+          
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Search by caption, submitter, tags..."
+              value={filters.search || ''}
+              onChange={(e) => onFiltersChange({ search: e.target.value || undefined })}
+              className="text-sm pr-8"
+            />
+            {filters.search && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1 h-6 w-6 p-0"
+                onClick={() => clearFilter('search')}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Date Range */}
         <div className="space-y-3">
           <Label className="text-sm font-medium flex items-center gap-2">
@@ -215,6 +243,20 @@ const FilterPanel = ({ filters, onFiltersChange, allUsers, className = "" }: Fil
         {getActiveFilterCount() > 0 && (
           <div className="pt-2 border-t border-border">
             <div className="flex flex-wrap gap-2">
+              {filters.search && (
+                <Badge variant="outline" className="text-xs">
+                  Search: "{filters.search}"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-1 h-3 w-3 p-0"
+                    onClick={() => clearFilter('search')}
+                  >
+                    <X className="h-2 w-2" />
+                  </Button>
+                </Badge>
+              )}
+              
               {filters.startDate && (
                 <Badge variant="outline" className="text-xs">
                   From: {filters.startDate.toLocaleDateString()}
