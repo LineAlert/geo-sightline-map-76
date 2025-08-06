@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      photo_captions: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       photo_priorities: {
         Row: {
           created_at: string

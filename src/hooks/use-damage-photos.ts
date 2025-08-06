@@ -83,10 +83,14 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
         };
       });
 
-      // Fetch user-specific priority overrides from database
+      // Fetch user-specific priority overrides and captions from database
       const { data: priorityOverrides, error: priorityError } = await supabase
         .from('photo_priorities')
         .select('photo_id, priority');
+
+      const { data: captionOverrides, error: captionError } = await supabase
+        .from('photo_captions')
+        .select('photo_id, caption');
 
       if (priorityError) {
         console.error('Error fetching priority overrides:', priorityError);
@@ -100,6 +104,21 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
           if (priorityValue && (priorityValue === 'high' || priorityValue === 'medium' || priorityValue === 'low')) {
             photo.priority = priorityValue;
             console.log('Applied priority override for photo:', photo.id, 'priority:', photo.priority);
+          }
+        });
+      }
+
+      if (captionError) {
+        console.error('Error fetching caption overrides:', captionError);
+        // Continue without captions if database query fails
+      } else {
+        // Apply caption overrides to photos
+        const captionMap = new Map(captionOverrides?.map(c => [c.photo_id, c.caption]) || []);
+        transformedPhotos.forEach(photo => {
+          const captionValue = captionMap.get(photo.id) || captionMap.get(String(photo.id));
+          if (captionValue) {
+            photo.caption = captionValue;
+            console.log('Applied caption for photo:', photo.id, 'caption:', photo.caption);
           }
         });
       }
@@ -322,10 +341,29 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
         throw new Error('User not authenticated');
       }
 
-      // For now, we'll need to create a separate table for captions
-      // This is a placeholder implementation
-      console.log('Caption updated locally, database implementation needed');
+      console.log('Saving caption to database for user:', user.id);
       
+      // Upsert the caption in the database
+      const { error } = await supabase
+        .from('photo_captions')
+        .upsert({
+          photo_id: String(photoId),
+          user_id: user.id,
+          caption: caption
+        }, {
+          onConflict: 'photo_id,user_id'
+        });
+
+      if (error) {
+        console.error('Database error saving caption:', error);
+        // Revert to original state
+        setPhotos(prev => prev.map(photo => 
+          photo.id === photoId ? { ...photo, caption: originalCaption } : photo
+        ));
+        throw error;
+      }
+      
+      console.log('Caption saved successfully to database');
     } catch (error) {
       console.error('Error updating photo caption:', error);
       throw error;
