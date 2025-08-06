@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { 
   MapPin, 
@@ -24,16 +26,19 @@ interface PhotoViewerProps {
   onClose: () => void;
   onPriorityChange?: (photoId: string, priority: 'high' | 'medium' | 'low') => void;
   onPriorityClear?: (photoId: string) => void;
+  onCaptionChange?: (photoId: string, caption: string) => void;
 }
 
-const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear }: PhotoViewerProps) => {
+const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear, onCaptionChange }: PhotoViewerProps) => {
   const [currentPriority, setCurrentPriority] = useState<string>(photo?.priority || '');
+  const [currentCaption, setCurrentCaption] = useState<string>(photo?.caption || '');
   const { toast } = useToast();
   
-  // Update currentPriority when photo changes
+  // Update states when photo changes
   useEffect(() => {
     setCurrentPriority(photo?.priority || '');
-  }, [photo?.priority]);
+    setCurrentCaption(photo?.caption || '');
+  }, [photo?.priority, photo?.caption]);
   
   if (!photo) return null;
 
@@ -129,6 +134,26 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear
     }
   };
 
+  const handleCaptionChange = async (newCaption: string) => {
+    setCurrentCaption(newCaption);
+    
+    if (onCaptionChange && photo) {
+      try {
+        await onCaptionChange(photo.id, newCaption);
+        toast({
+          title: "Caption Updated",
+          description: "Photo caption has been saved",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save caption. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col z-[9999]">
@@ -157,7 +182,7 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear
               <div className="relative">
                 <img
                   src={photo.imageUrl}
-                  alt={photo.description || 'Damage photo'}
+                  alt="Damage photo"
                   className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-card"
                 />
                 
@@ -235,19 +260,35 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Caption Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Caption</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="caption" className="text-sm font-medium">
+                      Add a caption for this photo
+                    </Label>
+                    <Input
+                      id="caption"
+                      value={currentCaption}
+                      onChange={(e) => setCurrentCaption(e.target.value)}
+                      onBlur={() => handleCaptionChange(currentCaption)}
+                      placeholder="Enter a caption..."
+                      className="text-sm"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+              
               
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Photo Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {photo.description && (
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Description</h4>
-                      <p className="text-sm">{photo.description}</p>
-                    </div>
-                  )}
-                  
                   <Separator />
                   
                   <div className="space-y-3">

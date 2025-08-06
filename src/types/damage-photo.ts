@@ -9,6 +9,7 @@ export interface DamagePhoto {
   priority?: 'high' | 'medium' | 'low';
   user?: string;
   description?: string;
+  caption?: string;
   tags?: string[];
 }
 

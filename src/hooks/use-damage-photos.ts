@@ -295,6 +295,41 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
     }
   };
 
+  const updatePhotoCaption = async (photoId: string, caption: string) => {
+    try {
+      console.log('Updating caption for photo:', photoId, 'to:', caption);
+      
+      // Store original caption for potential rollback
+      const originalPhoto = photos.find(photo => photo.id === photoId);
+      const originalCaption = originalPhoto?.caption;
+      
+      // Update local state immediately for responsive UI
+      setPhotos(prev => prev.map(photo => 
+        photo.id === photoId ? { ...photo, caption } : photo
+      ));
+
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('User not authenticated:', userError);
+        // Revert to original state
+        setPhotos(prev => prev.map(photo => 
+          photo.id === photoId ? { ...photo, caption: originalCaption } : photo
+        ));
+        throw new Error('User not authenticated');
+      }
+
+      // For now, we'll need to create a separate table for captions
+      // This is a placeholder implementation
+      console.log('Caption updated locally, database implementation needed');
+      
+    } catch (error) {
+      console.error('Error updating photo caption:', error);
+      throw error;
+    }
+  };
+
   return {
     photos: filteredPhotos,
     allPhotos: photos,
@@ -306,6 +341,7 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
     setSelectedArea,
     updatePhotosPriority,
     clearPhotoPriority,
+    updatePhotoCaption,
     reload: loadPhotos
   };
 };

@@ -32,7 +32,8 @@ const Index = () => {
     clearFilters, 
     setSelectedArea,
     updatePhotosPriority,
-    clearPhotoPriority
+    clearPhotoPriority,
+    updatePhotoCaption
   } = useDamagePhotos(viewportBounds);
 
   // Redirect to auth if not logged in
@@ -175,6 +176,7 @@ const Index = () => {
         }}
         onPriorityChange={updatePhotosPriority}
         onPriorityClear={clearPhotoPriority}
+        onCaptionChange={updatePhotoCaption}
       />
     </div>
   );

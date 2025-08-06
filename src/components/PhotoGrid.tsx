@@ -73,7 +73,7 @@ const PhotoGrid = ({ photos, selectedPhoto, onPhotoSelect }: PhotoGridProps) => 
             <div className="relative">
               <img
                 src={photo.imageUrl}
-                alt={photo.description || 'Damage photo'}
+                alt="Damage photo"
                 className="w-full h-32 object-cover rounded-t-lg"
                 loading="lazy"
               />
