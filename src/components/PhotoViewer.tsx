@@ -271,15 +271,6 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear
                       </div>
                     </div>
                     
-                    {photo.user && (
-                      <div className="flex items-start gap-3">
-                        <User className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                        <div>
-                          <h4 className="font-medium text-sm">Inspector</h4>
-                          <p className="text-sm text-muted-foreground">{photo.user}</p>
-                        </div>
-                      </div>
-                    )}
                     
                     {photo.altitude !== undefined && (
                       <div className="flex items-start gap-3">
