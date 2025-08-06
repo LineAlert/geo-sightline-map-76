@@ -23,9 +23,10 @@ interface PhotoViewerProps {
   isOpen: boolean;
   onClose: () => void;
   onPriorityChange?: (photoId: string, priority: 'high' | 'medium' | 'low') => void;
+  onPriorityClear?: (photoId: string) => void;
 }
 
-const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange }: PhotoViewerProps) => {
+const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange, onPriorityClear }: PhotoViewerProps) => {
   const [currentPriority, setCurrentPriority] = useState<string>(photo?.priority || '');
   const { toast } = useToast();
   
@@ -99,6 +100,29 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange }: PhotoViewerPr
         toast({
           title: "Error",
           description: "Failed to save priority. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handlePriorityClear = async () => {
+    const previousPriority = currentPriority;
+    setCurrentPriority('');
+    
+    if (onPriorityClear && photo) {
+      try {
+        await onPriorityClear(photo.id);
+        toast({
+          title: "Priority Cleared",
+          description: "Photo priority has been removed",
+        });
+      } catch (error) {
+        // Revert the UI state if clear failed
+        setCurrentPriority(previousPriority);
+        toast({
+          title: "Error",
+          description: "Failed to clear priority. Please try again.",
           variant: "destructive",
         });
       }
@@ -198,6 +222,16 @@ const PhotoViewer = ({ photo, isOpen, onClose, onPriorityChange }: PhotoViewerPr
                         Low
                       </Button>
                     </div>
+                    {currentPriority && (
+                      <Button
+                        variant="ghost"
+                        onClick={handlePriorityClear}
+                        className="w-full flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                        Clear Priority
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

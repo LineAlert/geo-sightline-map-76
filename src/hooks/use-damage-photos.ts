@@ -231,6 +231,56 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
     }
   };
 
+  const clearPhotoPriority = async (photoId: string) => {
+    try {
+      console.log('Clearing priority for photo:', photoId);
+      
+      // Store original priority for potential rollback
+      const originalPhoto = photos.find(photo => photo.id === photoId);
+      const originalPriority = originalPhoto?.priority;
+      
+      // Update local state immediately for responsive UI
+      setPhotos(prev => prev.map(photo => 
+        photo.id === photoId ? { ...photo, priority: undefined } : photo
+      ));
+
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('User not authenticated:', userError);
+        // Revert to original state
+        setPhotos(prev => prev.map(photo => 
+          photo.id === photoId ? { ...photo, priority: originalPriority } : photo
+        ));
+        throw new Error('User not authenticated');
+      }
+
+      console.log('Deleting priority from database for user:', user.id);
+      
+      // Delete the priority record from database
+      const { error } = await supabase
+        .from('photo_priorities')
+        .delete()
+        .eq('photo_id', String(photoId))
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Database error clearing priority:', error);
+        // Revert to original state
+        setPhotos(prev => prev.map(photo => 
+          photo.id === photoId ? { ...photo, priority: originalPriority } : photo
+        ));
+        throw error;
+      }
+      
+      console.log('Priority cleared successfully from database');
+    } catch (error) {
+      console.error('Error clearing photo priority:', error);
+      throw error; // Re-throw to allow calling component to handle
+    }
+  };
+
   return {
     photos: filteredPhotos,
     allPhotos: photos,
@@ -241,6 +291,7 @@ export const useDamagePhotos = (viewportBounds?: SelectedArea | null) => {
     clearFilters,
     setSelectedArea,
     updatePhotosPriority,
+    clearPhotoPriority,
     reload: loadPhotos
   };
 };
